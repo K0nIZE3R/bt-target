@@ -1,5 +1,7 @@
 local Models = {}
 local Zones = {}
+local Bones = {}
+
 
 Citizen.CreateThread(function()
     RegisterKeyMapping("+playerTarget", "Player Targeting", "keyboard", "LMENU") --Removed Bind System and added standalone version
@@ -16,12 +18,15 @@ if Config.ESX then
             Citizen.Wait(0)
         end
 
-        PlayerJob = ESX.GetPlayerData().job
+        RegisterNetEvent('esx:playerLoaded')
+        AddEventHandler('esx:playerLoaded', function(playerData)
+            PlayerJob = playerData.job
+        end)
 
         RegisterNetEvent('esx:setJob')
-        AddEventHandler('esx:setJob', function(job)
-            PlayerJob = job
-        end)
+		AddEventHandler('esx:setJob', function(job)
+		    PlayerJob = job
+		end)
     end)
 else
     PlayerJob = Config.NonEsxJob()
@@ -30,15 +35,26 @@ end
 function playerTargetEnable()
     if success then return end
     if IsPedArmed(PlayerPedId(), 6) then return end
-
+    local nearestVehicle = GetNearestVehicle()
     targetActive = true
-
     SendNUIMessage({response = "openTarget"})
+
+
 
     while targetActive do
         local plyCoords = GetEntityCoords(GetPlayerPed(-1))
         local hit, coords, entity = RayCastGamePlayCamera(20.0)
-
+        DisableControlAction(0,24,true) -- disable attack
+        DisableControlAction(0,25,true) -- disable aim
+        DisableControlAction(0,47,true) -- disable weapon
+        DisableControlAction(0,58,true) -- disable weapon
+        DisableControlAction(0,263,true) -- disable melee
+        DisableControlAction(0,264,true) -- disable melee
+        DisableControlAction(0,257,true) -- disable melee
+        DisableControlAction(0,140,true) -- disable melee
+        DisableControlAction(0,141,true) -- disable melee
+        DisableControlAction(0,142,true) -- disable melee
+        DisableControlAction(0,143,true) -- disable melee
         if hit == 1 then
             if GetEntityType(entity) ~= 0 then
                 for _, model in pairs(Models) do
@@ -71,6 +87,47 @@ function playerTargetEnable()
                                         end
                                         SendNUIMessage({response = "leftTarget"})
                                     end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+			
+            if nearestVehicle then
+                for _, bone in pairs(Bones) do
+                    local boneIndex = GetEntityBoneIndexByName(nearestVehicle, _)
+                    local bonePos = GetWorldPositionOfEntityBone(nearestVehicle, boneIndex)
+                    local distanceToBone = GetDistanceBetweenCoords(bonePos, plyCoords, 1)
+
+                    if #(bonePos - coords) <= Bones[_]["distance"] then
+                        for k , v in ipairs(Bones[_]["job"]) do
+                            if v == "all" or v == PlayerJob.name then
+                                if #(plyCoords - coords) <= Bones[_]["distance"] then
+                                    success = true
+
+                                    SendNUIMessage({response = "validTarget", data = Bones[_]["options"]})
+
+                                    while success and targetActive do
+                                        local plyCoords = GetEntityCoords(PlayerPedId())
+                                        local hit, coords, entity = RayCastGamePlayCamera(7.0)
+                                        local boneI = GetEntityBoneIndexByName(nearestVehicle, _)
+
+                                        DisablePlayerFiring(PlayerPedId(), true)
+
+                                        if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
+                                            SetNuiFocus(true, true)
+                                            SetCursorLocation(0.5, 0.5)
+                                        end
+
+                                        if #(plyCoords - coords) > Bones[_]["distance"] then
+                                            success = false
+                                        end
+
+                                        Citizen.Wait(1)
+                                    end
+                                    success = false
+                                    SendNUIMessage({response = "leftTarget"})
                                 end
                             end
                         end
@@ -113,12 +170,17 @@ function playerTargetEnable()
                 end
             end
         end
-        Citizen.Wait(250)
+        Citizen.Wait(5)
     end
 end
 
+
+
+
 function playerTargetDisable()
     if success then return end
+
+    success = false
 
     targetActive = false
 
@@ -135,6 +197,7 @@ RegisterNUICallback('selectTarget', function(data, cb)
     targetActive = false
 
     TriggerEvent(data.event,data)
+
 end)
 
 RegisterNUICallback('closeTarget', function(data, cb)
@@ -177,6 +240,21 @@ function RayCastGamePlayCamera(distance)
     return b, c, e
 end
 
+function GetNearestVehicle()
+    local playerPed = GetPlayerPed(-1)
+    local playerCoords = GetEntityCoords(playerPed)
+    if not (playerCoords and playerPed) then
+        return
+    end
+
+    local pointB = GetEntityForwardVector(playerPed) * 0.001 + playerCoords
+
+    local shapeTest = StartShapeTestCapsule(playerCoords.x, playerCoords.y, playerCoords.z, pointB.x, pointB.y, pointB.z, 1.0, 10, playerPed, 7)
+    local _, hit, _, _, entity = GetShapeTestResult(shapeTest)
+
+    return (hit == 1 and IsEntityAVehicle(entity)) and entity or false
+end
+
 --Exports
 
 function AddCircleZone(name, center, radius, options, targetoptions)
@@ -200,6 +278,17 @@ function AddTargetModel(models, parameteres)
     end
 end
 
+function AddTargetBone(bones, parameteres)
+    for _, bone in pairs(bones) do
+        Bones[bone] = parameteres
+    end
+end
+
+function AddEntityZone(name, entity, options, targetoptions)
+    Zones[name] = EntityZone:Create(entity, options)
+    Zones[name].targetoptions = targetoptions
+    end
+
 function RemoveZone(name)
     if not Zones[name] then return end
     if Zones[name].destroy then
@@ -217,4 +306,8 @@ exports("AddPolyzone", AddPolyzone)
 
 exports("AddTargetModel", AddTargetModel)
 
+exports("AddTargetBone", AddTargetBone)
+
 exports("RemoveZone", RemoveZone)
+
+exports("AddEntityZone", AddEntityZone)
