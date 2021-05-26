@@ -24,7 +24,7 @@ window.addEventListener('message', function(event) {
             
             $("#target-"+index+"").css("padding-top", "7px");
 
-            $("#target-"+index).data('TargetData', item.event);
+            $("#target-"+index).data('TargetData', item);
         });
 
         $(".target-eye").css("color", "rgb(30,144,255)");
@@ -41,9 +41,8 @@ $(document).on('mousedown', (event) => {
     if (element.id.split("-")[0] === 'target') {
         let TargetData = $("#"+element.id).data('TargetData');
 
-        $.post('http://bt-target/selectTarget', JSON.stringify({
-            event: TargetData,
-        }));
+
+        $.post('http://bt-target/selectTarget', JSON.stringify(TargetData));
 
         $(".target-label").html("");
         $('.target-wrapper').hide();

@@ -134,7 +134,7 @@ RegisterNUICallback('selectTarget', function(data, cb)
 
     targetActive = false
 
-    TriggerEvent(data.event)
+    TriggerEvent(data.event,data)
 end)
 
 RegisterNUICallback('closeTarget', function(data, cb)
