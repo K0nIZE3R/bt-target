@@ -59,33 +59,36 @@ function playerTargetEnable()
             if GetEntityType(entity) ~= 0 then
                 for _, model in pairs(Models) do
                     if _ == GetEntityModel(entity) then
-                        for k , v in ipairs(Models[_]["job"]) do 
-                            if v == "all" or v == PlayerJob.name then
-                                if _ == GetEntityModel(entity) then
-                                    if #(plyCoords - coords) <= Models[_]["distance"] then
-
-                                        success = true
-
-                                        SendNUIMessage({response = "validTarget", data = Models[_]["options"]})
-
-                                        while success and targetActive do
-                                            local plyCoords = GetEntityCoords(GetPlayerPed(-1))
-                                            local hit, coords, entity = RayCastGamePlayCamera(20.0)
-
-                                            DisablePlayerFiring(PlayerPedId(), true)
-
-                                            if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
-                                                SetNuiFocus(true, true)
-                                                SetCursorLocation(0.5, 0.5)
+                        for k , v in pairs(Models[_]["job"]) do
+                            if k == "all" or k == PlayerJob.name then
+                                if v.grade <= PlayerJob.grade then 
+                                    if _ == GetEntityModel(entity) then
+                                        if #(plyCoords - coords) <= Models[_]["distance"] then
+                                            local options = Models[_]["options"]
+                                            local send_options = {}
+                                            for l,b in pairs(options) do 
+                                                if b.grade == nil or b.grade <= PlayerJob.grade then 
+                                                    local slot = #send_options + 1
+                                                    send_options[slot] = b
+                                                end
                                             end
-
-                                            if GetEntityType(entity) == 0 or #(plyCoords - coords) > Models[_]["distance"] then
-                                                success = false
+                                            success = true
+                                            SendNUIMessage({response = "validTarget", data = send_options})
+                                            while success and targetActive do
+                                                local plyCoords = GetEntityCoords(GetPlayerPed(-1))
+                                                local hit, coords, entity = RayCastGamePlayCamera(20.0)
+                                                DisablePlayerFiring(PlayerPedId(), true)
+                                                if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
+                                                    SetNuiFocus(true, true)
+                                                    SetCursorLocation(0.5, 0.5)
+                                                end
+                                                if GetEntityType(entity) == 0 or #(plyCoords - coords) > Models[_]["distance"] then
+                                                    success = false
+                                                end
+                                                Citizen.Wait(1)
                                             end
-
-                                            Citizen.Wait(1)
+                                            SendNUIMessage({response = "leftTarget"})
                                         end
-                                        SendNUIMessage({response = "leftTarget"})
                                     end
                                 end
                             end
@@ -101,33 +104,38 @@ function playerTargetEnable()
                     local distanceToBone = GetDistanceBetweenCoords(bonePos, plyCoords, 1)
 
                     if #(bonePos - coords) <= Bones[_]["distance"] then
-                        for k , v in ipairs(Bones[_]["job"]) do
-                            if v == "all" or v == PlayerJob.name then
-                                if #(plyCoords - coords) <= Bones[_]["distance"] then
-                                    success = true
-
-                                    SendNUIMessage({response = "validTarget", data = Bones[_]["options"]})
-
-                                    while success and targetActive do
-                                        local plyCoords = GetEntityCoords(PlayerPedId())
-                                        local hit, coords, entity = RayCastGamePlayCamera(7.0)
-                                        local boneI = GetEntityBoneIndexByName(nearestVehicle, _)
-
-                                        DisablePlayerFiring(PlayerPedId(), true)
-
-                                        if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
-                                            SetNuiFocus(true, true)
-                                            SetCursorLocation(0.5, 0.5)
+                        for k , v in pairs(Bones[_]["job"]) do
+                            if k == "all" or k == PlayerJob.name then
+                                if v.grade <= PlayerJob.grade then 
+                                    if #(plyCoords - coords) <= Bones[_]["distance"] then
+                                        local options = Bones[_]["options"]
+                                        local send_options = {}
+                                        for l,b in pairs(options) do 
+                                            if b.grade == nil or b.grade <= PlayerJob.grade then 
+                                                local slot = #send_options + 1
+                                                send_options[slot] = b
+                                            end
                                         end
+                                        success = true
+                                        SendNUIMessage({response = "validTarget", data = send_options})
+                                        while success and targetActive do
+                                            local plyCoords = GetEntityCoords(PlayerPedId())
+                                            local hit, coords, entity = RayCastGamePlayCamera(7.0)
+                                            local boneI = GetEntityBoneIndexByName(nearestVehicle, _)
+                                            DisablePlayerFiring(PlayerPedId(), true)
 
-                                        if #(plyCoords - coords) > Bones[_]["distance"] then
-                                            success = false
+                                            if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
+                                                SetNuiFocus(true, true)
+                                                SetCursorLocation(0.5, 0.5)
+                                            end
+                                            if #(plyCoords - coords) > Bones[_]["distance"] then
+                                                success = false
+                                            end
+                                            Citizen.Wait(1)
                                         end
-
-                                        Citizen.Wait(1)
+                                        success = false
+                                        SendNUIMessage({response = "leftTarget"})
                                     end
-                                    success = false
-                                    SendNUIMessage({response = "leftTarget"})
                                 end
                             end
                         end
@@ -137,33 +145,38 @@ function playerTargetEnable()
 
             for _, zone in pairs(Zones) do
                 if Zones[_]:isPointInside(coords) then
-                    for k , v in ipairs(Zones[_]["targetoptions"]["job"]) do 
-                        if v == "all" or v == PlayerJob.name then
-                            if #(plyCoords - Zones[_].center) <= zone["targetoptions"]["distance"] then
-
-                                success = true
-
-                                SendNUIMessage({response = "validTarget", data = Zones[_]["targetoptions"]["options"]})
-                                while success and targetActive do
-                                    local plyCoords = GetEntityCoords(GetPlayerPed(-1))
-                                    local hit, coords, entity = RayCastGamePlayCamera(20.0)
-
-                                    DisablePlayerFiring(PlayerPedId(), true)
-
-                                    if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
-                                        SetNuiFocus(true, true)
-                                        SetCursorLocation(0.5, 0.5)
-                                    elseif not Zones[_]:isPointInside(coords) or #(vector3(Zones[_].center.x, Zones[_].center.y, Zones[_].center.z) - plyCoords) > zone.targetoptions.distance then
+                    for k , v in pairs(Zones[_]["targetoptions"]["job"]) do 
+                        if k == "all" or k == PlayerJob.name then
+                            if v.grade <= PlayerJob.grade then 
+                                if #(plyCoords - Zones[_].center) <= zone["targetoptions"]["distance"] then
+                                    local options = Zones[_]["targetoptions"]["options"]
+                                    local send_options = {}
+                                    for l,b in pairs(options) do 
+                                        if b.grade == nil or b.grade <= PlayerJob.grade then 
+                                            local slot = #send_options + 1
+                                            send_options[slot] = b
+                                        end
                                     end
+                                    success = true
+                                    SendNUIMessage({response = "validTarget", data = send_options})
+                                    while success and targetActive do
+                                        local plyCoords = GetEntityCoords(GetPlayerPed(-1))
+                                        local hit, coords, entity = RayCastGamePlayCamera(20.0)
+                                        DisablePlayerFiring(PlayerPedId(), true)
+                                        if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
+                                            SetNuiFocus(true, true)
+                                            SetCursorLocation(0.5, 0.5)
+                                        elseif not Zones[_]:isPointInside(coords) or #(vector3(Zones[_].center.x, Zones[_].center.y, Zones[_].center.z) - plyCoords) > zone.targetoptions.distance then
+                                        end
         
-                                    if not Zones[_]:isPointInside(coords) or #(plyCoords - Zones[_].center) > zone.targetoptions.distance then
-                                        success = false
-                                    end
-        
+                                        if not Zones[_]:isPointInside(coords) or #(plyCoords - Zones[_].center) > zone.targetoptions.distance then
+                                            success = false
+                                        end
 
-                                    Citizen.Wait(1)
+                                        Citizen.Wait(1)
+                                    end
+                                    SendNUIMessage({response = "leftTarget"})
                                 end
-                                SendNUIMessage({response = "leftTarget"})
                             end
                         end
                     end

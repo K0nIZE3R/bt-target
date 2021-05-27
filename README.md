@@ -3,7 +3,13 @@
 Dependencies: https://github.com/mkafrin/PolyZone
 
 ## Updated functionality
-My fork of bt-target includes the option to pass all data through the event to target events, for example:
+My fork of bt-target includes the following options:
+* Pass all data through to the target event in the data table 
+* Add vehicle bone support
+* Disable the ability to aima/attack while in interactive mode
+* Check overall job grade to access the menu 
+* Check individual option job grades 
+
 
 ```lua
 Citizen.CreateThread(function()
@@ -18,11 +24,12 @@ Citizen.CreateThread(function()
                 label = "Coffee",
                 item = "coffee",
                 price = 5,
+                grade = 1,  --This defines the minimum grade of the jobs defined below to access this option
                 anything_else = "You can pass any data through this table",
                 mytable = { name = 'mytable', description = 'including another table'},
             },
         },
-        job = {"all"}
+        job = {["all"] = grade { grade = 0}} -- Allow you to define overall grade requirements to access any option within this interaction
         distance = 2.5
     })
 end)
@@ -55,19 +62,22 @@ Citizen.CreateThread(function()
                 event = "Random 2event",
                 icon = "fas fa-dumpster",
                 label = "Random 2",
+                grade = 1,
             },
             {
                 event = "Random 3event",
                 icon = "fas fa-dumpster",
                 label = "Random 3",
+                grade = 2,
             },
             {
                 event = "Random 4event",
                 icon = "fas fa-dumpster",
                 label = "Random 4",
+                grade = 3,
             },
         },
-        job = {"garbage"}
+        job = {["garbage"] = {grade = 0}}
         distance = 2.5
     })
 
@@ -82,7 +92,7 @@ Citizen.CreateThread(function()
                 label = "Coffee",
             },
         },
-        job = {"all"}
+        job = {["all"] = {grade = 0}}
         distance = 2.5
     })
     
@@ -105,7 +115,7 @@ Citizen.CreateThread(function()
                 label = "Sign Off",
             },
         },
-        job = {"police", "ambulance", "mechanic"},
+        job = {["police"] = {grade = 0}, ["ambulance"] = { grade = 0}, ["mechanic"] = {grade =0 }},
         distance = 1.5
     })
 end)
