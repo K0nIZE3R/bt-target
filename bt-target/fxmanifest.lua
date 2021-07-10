@@ -2,6 +2,8 @@ fx_version 'adamant'
 
 game 'gta5'
 
+version 'noms 0.2'
+
 dependencies {
     "PolyZone"
 }
@@ -9,6 +11,7 @@ dependencies {
 ui_page 'html/index.html'
 
 client_scripts {
+	'@es_extended/imports.lua',
 	'@PolyZone/client.lua',
 	'@PolyZone/BoxZone.lua',
 	'@PolyZone/EntityZone.lua',
