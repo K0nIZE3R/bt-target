@@ -200,7 +200,7 @@ exports['bt-target']:AddTargetEntity(NetworkGetNetworkIdFromEntity(vehicle), {
     },
     distance = 3.0
 })
-
+```
 
 ### AddTargetBone
 Use this in conjunction with the bone index in the `config.lua` file to define bones you would like to interact with on a vehicle.
