@@ -5,6 +5,7 @@ Dependencies:
 * Linden Inventory (Latest version): https://github.com/thelindat/linden_inventory/
 * Linden ESX Legacy (es_extended) (Latest): https://github.com/thelindat/es_extended AND follow instructions
 
+Made for QRP: https://quantusrp.com | https://discord.gg/4xqUnujMYQ
 
 Icons: https://fontawesome.com/
 
